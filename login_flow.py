@@ -45,10 +45,18 @@ def new_qr():
         log(f"生成二维码失败: {res}")
         return None
     d = res["data"]
-    import qrcode
-    qrcode.make(d["url"]).save(str(D / "login_qr.png"))
+    import qrcode, os
+    ts = time.strftime("%H%M%S")
+    qr_path = D / f"login_qr_{ts}.png"
+    try:
+        qrcode.make(d["url"]).save(str(qr_path))
+    except OSError:
+        qr_path = D.parent / f"xhs_login_qr_{ts}.png"
+        qrcode.make(d["url"]).save(str(qr_path))
     (D / "pending_login.json").write_text(json.dumps({"qr_id": d["qr_id"], "code": d["code"]}))
     log(f"新二维码已生成 qr_id={d['qr_id']}")
+    log(f"二维码文件: {qr_path}")
+    log(f"在 PowerShell 执行这个命令打开它: start \"{qr_path}\"")
     return d["qr_id"], d["code"]
 
 cur = new_qr()
